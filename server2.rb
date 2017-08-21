@@ -6,13 +6,9 @@ require "net/http"
 require "uri"
 
 # Our client ID and secret, used to get the access token
-#CLIENT_ID = '9cb3070a-8972-4e1d-91af-b249562f019e'
-#CLIENT_SECRET = 'b3aa5ca9-c240-4cfe-b856-62b70421470a'
-
-CLIENT_ID = '0fd091f7-4f90-426a-aed8-1b57825fff44'
-CLIENT_SECRET = '362eafdf-5979-48c3-9397-5ed5fd78c577'
+CLIENT_ID = '88a37b2d-1f96-4e15-a0fc-e0ec63b84f3b'
+CLIENT_SECRET = '75ce0970-b3da-4c43-aaaf-2d9313575541'
 uri = ''
-
 
 
 
@@ -74,7 +70,7 @@ session[:access_token] = response.token
 # expires in (seconds from now), and the expires at (in epoch time)
 puts 'TOKEN EXPIRES IN ' + response.expires_in.to_s
 puts 'TOKEN EXPIRES AT ' + response.expires_at.to_s
-redirect '/getswitch'
+redirect '/temperature'
 end
 
 
@@ -83,7 +79,7 @@ end
 # handle requests to the /getSwitch URL. This is where
 # we will make requests to get information about the configured
 # switch.
-get '/getswitch' do
+get '/temperature' do
   # If we get to this URL without having gotten the access token
   # redirect back to root to go through authorization
   if !authenticated?
@@ -116,90 +112,17 @@ get '/getswitch' do
   puts json
 
   # get the endpoint from the JSON:
-uri = json[0]['uri']
+  uri = json[0]['uri']
 
 
-puts uri
-
-
-  [%(<a href="/ON">Outlett on</a><br>),
-  %(<a href="/OFF">Outlett off</a>),%(<br><a href="/page">Redirect</a><br>),%(<br><a href="/listM">Motion</a><br>)]
-
+  puts uri
+  #  switchStatus = getSwitchHttp.request(getSwitchReq)
+  #  [%(<p>switchStatus.code</p><br>),%(<p>switchStatus.to_hast.inspect</p><br>),%(<p>switchStatus.body</p>)]
 
 
 
-end
+  %(<a href="/temp">Details</a><br>)
 
-
-
-
-
-
-
-
-  get '/ON' do
-
-    switchUrl = uri + '/switches/on'
-    token = session[:access_token]
-    getSwitchURL = URI.parse(switchUrl)
-    getSwitchReq = Net::HTTP::Put.new(getSwitchURL.request_uri)
-    getSwitchReq['Authorization'] = 'Bearer ' + token
-
-
-    getSwitchHttp = Net::HTTP.new(getSwitchURL.host, getSwitchURL.port)
-    getSwitchHttp.use_ssl = true
-
-    switchStatus = getSwitchHttp.request(getSwitchReq)
-
-
-
-    ######################################################
-
-    switchUrlon = uri + '/switches'
-    token = session[:access_token]
-    getSwitchURLon = URI.parse(switchUrlon)
-    getSwitchReqon = Net::HTTP::Get.new(getSwitchURLon.request_uri)
-    getSwitchReqon['Authorization'] = 'Bearer ' + token
-
-
-    getSwitchHttpon = Net::HTTP.new(getSwitchURLon.host, getSwitchURLon.port)
-    getSwitchHttpon.use_ssl = true
-
-    switchStatuson = getSwitchHttpon.request(getSwitchReqon)
-    '<h3>Response Code</h3>' + switchStatuson.code + '<br/><h3>Response Headers</h3>' + switchStatuson.to_hash.inspect + '<br/><h3>Response Body</h3>' + switchStatuson.body+%(<br><a href="/back">Back</a>)
-
-end
-
-
-
-  get '/OFF' do
-
-    switchUrl = uri + '/switches/off'
-    token = session[:access_token]
-    getSwitchURL = URI.parse(switchUrl)
-    getSwitchReq = Net::HTTP::Put.new(getSwitchURL.request_uri)
-    getSwitchReq['Authorization'] = 'Bearer ' + token
-
-
-    getSwitchHttp = Net::HTTP.new(getSwitchURL.host, getSwitchURL.port)
-    getSwitchHttp.use_ssl = true
-
-    switchStatus = getSwitchHttp.request(getSwitchReq)
-
-######################################################
-
-switchUrloff = uri + '/switches'
-token = session[:access_token]
-getSwitchURLoff = URI.parse(switchUrloff)
-getSwitchReqoff = Net::HTTP::Get.new(getSwitchURLoff.request_uri)
-getSwitchReqoff['Authorization'] = 'Bearer ' + token
-
-
-getSwitchHttpoff = Net::HTTP.new(getSwitchURLoff.host, getSwitchURLoff.port)
-getSwitchHttpoff.use_ssl = true
-
-switchStatusoff = getSwitchHttpoff.request(getSwitchReqoff)
-'<h3>Response Code</h3>' + switchStatusoff.code + '<br/><h3>Response Headers</h3>' + switchStatusoff.to_hash.inspect + '<br/><h3>Response Body</h3>' + switchStatusoff.body+ %(<br><a href="/back">Back</a>)
 
 
 
@@ -212,13 +135,44 @@ switchStatusoff = getSwitchHttpoff.request(getSwitchReqoff)
 
 
 
-get '/page' do
-  redirect_uri='index'
-end
+  get '/temp' do
+
+  #  switchUrl = uri + '/switches/'
+  #  token = session[:access_token]
+  #  getSwitchURL = URI.parse(switchUrl)
+  #  getSwitchReq = Net::HTTP::Put.new(getSwitchURL.request_uri)
+  #  getSwitchReq['Authorization'] = 'Bearer ' + token
 
 
-get '/back' do
+  #  getSwitchHttp = Net::HTTP.new(getSwitchURL.host, getSwitchURL.port)
+  #  getSwitchHttp.use_ssl = true
 
-  redirect '/getswitch'
+  #  switchStatus = getSwitchHttp.request(getSwitchReq)
 
-end
+
+
+    ######################################################
+
+    switchUrlon = uri + '/switchesTemp'
+    token = session[:access_token]
+    getSwitchURLon = URI.parse(switchUrlon)
+    getSwitchReqon = Net::HTTP::Get.new(getSwitchURLon.request_uri)
+    getSwitchReqon['Authorization'] = 'Bearer ' + token
+
+
+    getSwitchHttpon = Net::HTTP.new(getSwitchURLon.host, getSwitchURLon.port)
+    getSwitchHttpon.use_ssl = true
+
+    switchStatuson = getSwitchHttpon.request(getSwitchReqon)
+    '<h3>Response Body</h3>' + switchStatuson.body+%(<br><a href="/back">Back</a>)
+  #  tempSwitchURL=Net::HTTP::Get.new(tempSwitchURL.listTemp)
+  end
+
+
+
+
+  get '/back' do
+
+  redirect '/temperature'
+
+  end
