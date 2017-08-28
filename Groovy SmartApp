@@ -1,0 +1,175 @@
+/**
+ *  WebThings
+ *
+ *  Copyright 2017 Vlad Horatau
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ */
+ 
+  import groovy.json.JsonBuilder
+ 
+definition(
+    name: "WebThings",
+    namespace: "vladhoratau",
+    author: "Vlad Horatau",
+    description: "...",
+    category: "My Apps",
+    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+
+
+	preferences {
+  section ("Allow external service to control these things...") {
+    input "switches", "capability.switch", multiple: false, required: false
+    input "theMotion", "capability.motionSensor", required: true, multiple: true
+    input "tempSensor", "capability.temperatureMeasurement"
+    input "battery", "capability.battery", required:false
+    input "presence", "capability.presenceSensor", required:false
+    input "battery", "capability.battery", required:false
+  }
+  
+}
+
+
+   def resp=[]
+
+mappings {
+  path("/switches") {
+    action: [
+      GET: "listSwitches"
+    ]
+  }
+  path("/switches/:command") {
+    action: [
+      PUT: "updateSwitches"
+    ]
+  }
+  path("/Temp") {
+    action: [
+      GET: "listTemp"
+    ]
+  }
+  path("/Presence") {
+    action: [
+      GET: "listPresence"
+    ]
+  }
+   path("/MoSwitch") {
+    action: [
+      GET: "updateMS"
+    ]
+  }
+  path("/Motion"){
+  action: [
+  GET: "listMotion"
+  ]
+  }
+}
+
+// returns a list like
+// [[name: "kitchen lamp", value: "off"], [name: "bathroom", value: "on"]]
+def listSwitches() {
+    def resp = []
+    switches.each {
+        resp << [name: it.displayName, label: it.name, type: it.typeName, id: it.id, date: it.events()[0]?.date, model: it.modelName, manufacturer: it.manufacturerName, Value: it.currentValue("switch")]
+    }
+    return resp
+    
+}
+
+void updateSwitches() {
+    // use the built-in request object to get the command parameter
+    def command = params.command
+
+    // all switches have the comand
+    // execute the command on all switches
+    // (note we can do this on the array - the command will be invoked on every element
+    switch(command) {
+        case "on":
+            switches.on()
+            break
+        case "off":
+            switches.off()
+            break
+        default:
+            httpError(400, "$command is not a valid command for all switches specified")
+    }
+    }
+
+
+def installed() {
+    initialize()
+}
+
+def updated() {
+    unsubscribe()
+    initialize()
+    }
+    
+    
+    def initialize(){    }
+    
+    
+    def listTemp()
+    { 
+  
+    def resp=[]
+    def lastT=tempSensor.latestValue("temperature")
+    def baterryLevel=tempSensor.battery
+    resp<<[Name: tempSensor.displayName,type: tempSensor.typeName, id: tempSensor.id, date: tempSensor.events()[0]?.date, manufacturer: tempSensor.manufacturerName, Value: lastT]
+    }
+  
+    
+    
+    
+     def listMotion(){
+	def resp=[]
+    def motionState=theMotion.currentState("motion")
+    //sendEvent(name: "${motionState}")
+    resp<<[ Name: theMotion.displayName, Value: motionState]
+    }
+    
+ 
+ 
+ 
+/*def listPresence(){
+	def resp=[]
+    def presS=presence.latestState("presence")
+    log.debug "Presence state: ${presence}"
+        sendEvent(name: name, value: value)
+    //resp<<[ Name: presence.displayName,type: presence.typeName, id: presence.id, date: presence.events()[0]?.date, manufacturer: presence.manufacturerName, State: presence.currentState("presence")]
+    resp<<[presS]
+    }
+    
+    
+    */
+   def updateMS(){  
+ 
+        
+    def motionState=theMotion.currentValue("motion")
+    
+    // log.debug "State: ${motionState}"
+    if(motionState.value=="active")
+     { log.debug "State: ${motionState}"
+     switches.on()
+     resp<<[switches.currentState("switch"), theMotion.currentState("motion")]
+     }
+     else
+     { log.debug "${motionState}"
+     switches.off()
+     resp<<[switches.currentState("switch"), theMotion.currentState("motion")]
+     }
+    }
+ 
+    
+    
+   
